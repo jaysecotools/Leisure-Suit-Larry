@@ -66,6 +66,7 @@
             gap: 10px;
             padding: 20px;
             overflow: hidden;
+            height: 100%;
         }
         
         .scene-container {
@@ -73,6 +74,7 @@
             border-radius: 10px;
             overflow: hidden;
             position: relative;
+            height: 100%;
         }
         
         .scene {
@@ -95,6 +97,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: all 0.5s ease;
         }
         
         .character-head {
@@ -133,6 +136,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: all 0.5s ease;
         }
         
         .npc-head {
@@ -154,6 +158,8 @@
             align-items: center;
             cursor: pointer;
             transition: transform 0.2s;
+            font-size: 2rem;
+            z-index: 10;
         }
         
         .interactive-item:hover {
@@ -182,6 +188,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            height: 100%;
+            overflow: hidden;
         }
         
         .inventory {
@@ -189,6 +197,9 @@
             border-radius: 10px;
             padding: 15px;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         
         .inventory-title {
@@ -201,6 +212,8 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+            overflow-y: auto;
+            padding: 5px;
         }
         
         .inventory-item {
@@ -211,6 +224,18 @@
             justify-content: center;
             align-items: center;
             font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .inventory-item:hover {
+            transform: scale(1.05);
+            background: #5c5cb8;
+        }
+        
+        .inventory-item.selected {
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px #f1c40f;
         }
         
         .dialog {
@@ -220,6 +245,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
         .dialog-title {
@@ -234,6 +260,9 @@
             border-radius: 8px;
             padding: 10px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         
         .dialog-options {
@@ -241,6 +270,8 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
+            max-height: 150px;
+            overflow-y: auto;
         }
         
         .dialog-option {
@@ -253,6 +284,11 @@
         
         .dialog-option:hover {
             background: #5c5cb8;
+        }
+        
+        .dialog-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .game-footer {
@@ -296,10 +332,82 @@
         }
         
         .message {
-            padding: 10px;
+            padding: 8px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
             font-style: italic;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .message.npc {
+            background: rgba(231, 76, 60, 0.2);
+            align-self: flex-start;
+        }
+        
+        .message.player {
+            background: rgba(52, 152, 219, 0.2);
+            align-self: flex-end;
+        }
+        
+        .location-name {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .mood-meter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .mood-fill {
+            width: 60px;
+            height: 10px;
+            background: #e74c3c;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .mood-level {
+            height: 100%;
+            background: linear-gradient(to right, #2ecc71, #f1c40f, #e74c3c);
+            width: 50%;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(46, 204, 113, 0.9);
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* Responsive design */
@@ -320,6 +428,10 @@
             .npc {
                 right: 50px;
             }
+            
+            .mood-meter {
+                top: 60px;
+            }
         }
     </style>
 </head>
@@ -328,14 +440,23 @@
         <header class="game-header">
             <div class="game-title">Leisure Suit Larry: Modern Adventures</div>
             <div class="game-stats">
-                <div class="stat">Score: 250</div>
-                <div class="stat">Time: 12:45</div>
+                <div class="stat">Score: <span id="score-value">250</span></div>
+                <div class="stat">Time: <span id="time-value">12:45</span></div>
             </div>
         </header>
         
         <main class="game-content">
             <div class="scene-container">
                 <div class="scene">
+                    <div class="location-name">Le Bar de l'Amour</div>
+                    
+                    <div class="mood-meter">
+                        <span>Mood:</span>
+                        <div class="mood-fill">
+                            <div class="mood-level" id="mood-level"></div>
+                        </div>
+                    </div>
+                    
                     <div class="character">
                         <div class="character-head">
                             <div class="character-eyes">
@@ -349,9 +470,9 @@
                         <div class="npc-head"></div>
                     </div>
                     
-                    <div class="interactive-item item-1">💼</div>
-                    <div class="interactive-item item-2">🍸</div>
-                    <div class="interactive-item item-3">🔑</div>
+                    <div class="interactive-item item-1" data-item="briefcase">💼</div>
+                    <div class="interactive-item item-2" data-item="drink">🍸</div>
+                    <div class="interactive-item item-3" data-item="key">🔑</div>
                 </div>
             </div>
             
@@ -359,24 +480,23 @@
                 <div class="inventory">
                     <div class="inventory-title">Inventory</div>
                     <div class="inventory-items">
-                        <div class="inventory-item">💵</div>
-                        <div class="inventory-item">📱</div>
-                        <div class="inventory-item">🚗</div>
-                        <div class="inventory-item">🕶️</div>
+                        <div class="inventory-item" data-item="money">💵</div>
+                        <div class="inventory-item" data-item="phone">📱</div>
+                        <div class="inventory-item" data-item="carKeys">🚗</div>
+                        <div class="inventory-item" data-item="sunglasses">🕶️</div>
                     </div>
                 </div>
                 
                 <div class="dialog">
                     <div class="dialog-title">Conversation</div>
-                    <div class="dialog-content">
-                        <p class="message">Larry: Hey there, beautiful. What's a person like you doing in a place like this?</p>
-                        <p class="message">Eve: I'm waiting for someone who actually has something interesting to say.</p>
-                        <p class="message">Larry: Well, I've been told I'm full of interesting... ideas.</p>
+                    <div class="dialog-content" id="dialog-content">
+                        <p class="message npc">Eve: I'm waiting for someone who actually has something interesting to say.</p>
+                        <p class="message player">Larry: Well, I've been told I'm full of interesting... ideas.</p>
                     </div>
-                    <div class="dialog-options">
-                        <div class="dialog-option">1. Compliment her appearance</div>
-                        <div class="dialog-option">2. Offer a drink</div>
-                        <div class="dialog-option">3. Show off your wallet</div>
+                    <div class="dialog-options" id="dialog-options">
+                        <div class="dialog-option" data-option="compliment">1. Compliment her appearance</div>
+                        <div class="dialog-option" data-option="drink">2. Offer a drink</div>
+                        <div class="dialog-option" data-option="wallet">3. Show off your wallet</div>
                     </div>
                 </div>
             </div>
@@ -384,18 +504,20 @@
         
         <footer class="game-footer">
             <div class="action-buttons">
-                <button class="btn btn-primary">Look</button>
-                <button class="btn btn-primary">Talk</button>
-                <button class="btn btn-primary">Use</button>
-                <button class="btn btn-primary">Move</button>
+                <button class="btn btn-primary" data-action="look">Look</button>
+                <button class="btn btn-primary" data-action="talk">Talk</button>
+                <button class="btn btn-primary" data-action="use">Use</button>
+                <button class="btn btn-primary" data-action="move">Move</button>
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-success">Save</button>
-                <button class="btn btn-danger">Load</button>
+                <button class="btn btn-success" data-action="save">Save</button>
+                <button class="btn btn-danger" data-action="load">Load</button>
             </div>
         </footer>
     </div>
+
+    <div class="notification" id="notification">Item added to inventory!</div>
 
     <script>
         // Game state
@@ -404,89 +526,413 @@
             currentScene: "bar",
             inventory: ["money", "phone", "carKeys", "sunglasses"],
             currentDialog: 0,
-            npcMood: 50 // 0-100 scale
+            npcMood: 50, // 0-100 scale
+            selectedItem: null,
+            gameTime: 0, // in seconds
+            locations: ["bar", "hotelLobby", "beach", "casino"],
+            currentLocation: 0,
+            itemLocations: {
+                briefcase: {x: 200, y: 180},
+                drink: {x: 300, y: 180},
+                key: {x: 250, y: 280}
+            },
+            dialogues: {
+                bar: [
+                    {npc: "Eve: I'm waiting for someone who actually has something interesting to say.", player: "Larry: Well, I've been told I'm full of interesting... ideas."},
+                    {npc: "Eve: *sigh* That's exactly what I was afraid of.", player: "Larry: Wait, I can do better! How about we start over?"}
+                ],
+                hotelLobby: [
+                    {npc: "Receptionist: Do you have a reservation, sir?", player: "Larry: I have a reservation about this place, but not an actual reservation."}
+                ],
+                beach: [
+                    {npc: "Lifeguard: Sorry sir, this area is for guests only.", player: "Larry: But I'm a guest of humanity! Doesn't that count?"}
+                ],
+                casino: [
+                    {npc: "Dealer: Place your bets, gentlemen.", player: "Larry: I'll bet my heart that the lady at the end of the bar will give me a chance!"}
+                ]
+            },
+            dialogOptions: {
+                bar: [
+                    {text: "Compliment her appearance", moodEffect: 10, requiredItem: null},
+                    {text: "Offer a drink", moodEffect: 5, requiredItem: null},
+                    {text: "Show off your wallet", moodEffect: -5, requiredItem: "money"},
+                    {text: "Offer your sunglasses", moodEffect: 8, requiredItem: "sunglasses"},
+                    {text: "Suggest going for a drive", moodEffect: 15, requiredItem: "carKeys"}
+                ],
+                hotelLobby: [
+                    {text: "Ask for the best room", moodEffect: 0, requiredItem: null},
+                    {text: "Compliment the decor", moodEffect: 5, requiredItem: null}
+                ]
+            }
         };
 
-        // Interactive elements
+        // DOM elements
         const interactiveItems = document.querySelectorAll('.interactive-item');
         const dialogOptions = document.querySelectorAll('.dialog-option');
         const actionButtons = document.querySelectorAll('.btn');
-        
-        // Add event listeners to interactive items
-        interactiveItems.forEach(item => {
-            item.addEventListener('click', () => {
-                // Visual feedback
-                item.style.transform = 'scale(1.2)';
-                item.style.boxShadow = '0 0 15px yellow';
-                
-                setTimeout(() => {
-                    item.style.transform = 'scale(1)';
-                    item.style.boxShadow = 'none';
-                }, 300);
-                
-                // Game logic would go here
-                console.log("Interacted with item: ", item.textContent);
-            });
-        });
-        
-        // Dialog options
-        dialogOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                option.style.background = '#2ecc71';
-                
-                // Update NPC mood based on selection
-                if (option.textContent.includes('Compliment')) {
-                    gameState.npcMood += 10;
-                } else if (option.textContent.includes('drink')) {
-                    gameState.npcMood += 5;
-                } else if (option.textContent.includes('wallet')) {
-                    gameState.npcMood -= 5;
-                }
-                
-                // Update score
-                gameState.score += 25;
-                document.querySelector('.stat').textContent = `Score: ${gameState.score}`;
-                
-                // Update dialog
-                const dialogContent = document.querySelector('.dialog-content');
-                dialogContent.innerHTML += `<p class="message">Larry: You know, I have a feeling we're getting along better now. Mood: ${gameState.npcMood}</p>`;
-                dialogContent.scrollTop = dialogContent.scrollHeight;
-                
-                setTimeout(() => {
-                    option.style.background = '#706fd3';
-                }, 500);
-            });
-        });
-        
-        // Action buttons
-        actionButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                button.style.transform = 'translateY(2px)';
-                
-                if (button.textContent === 'Look') {
-                    const dialogContent = document.querySelector('.dialog-content');
-                    dialogContent.innerHTML += `<p class="message">You take a look around the bar. It's fancier than the places you usually frequent.</p>`;
-                    dialogContent.scrollTop = dialogContent.scrollHeight;
-                }
-                
-                setTimeout(() => {
-                    button.style.transform = 'translateY(0)';
-                }, 100);
-            });
-        });
-        
+        const inventoryItems = document.querySelectorAll('.inventory-item');
+        const dialogContent = document.getElementById('dialog-content');
+        const dialogOptionsContainer = document.getElementById('dialog-options');
+        const scoreElement = document.getElementById('score-value');
+        const timeElement = document.getElementById('time-value');
+        const moodElement = document.getElementById('mood-level');
+        const notification = document.getElementById('notification');
+        const character = document.querySelector('.character');
+        const npc = document.querySelector('.npc');
+
         // Initialize game
-        document.addEventListener('DOMContentLoaded', () => {
+        function initGame() {
             console.log("Leisure Suit Larry: Modern Adventures initialized!");
+            updateUI();
+            
+            // Start game timer
+            setInterval(() => {
+                gameState.gameTime++;
+                const minutes = Math.floor(gameState.gameTime / 60);
+                const seconds = gameState.gameTime % 60;
+                timeElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }, 1000);
             
             // Animate character entrance
-            const character = document.querySelector('.character');
             character.style.transition = 'transform 1s';
             character.style.transform = 'translateX(-50%) translateY(-20px)';
             
             setTimeout(() => {
                 character.style.transform = 'translateX(-50%)';
             }, 1000);
+        }
+
+        // Update UI based on game state
+        function updateUI() {
+            // Update score
+            scoreElement.textContent = gameState.score;
+            
+            // Update mood meter
+            moodElement.style.width = `${gameState.npcMood}%`;
+            
+            // Update mood color
+            if (gameState.npcMood > 70) {
+                moodElement.style.background = 'linear-gradient(to right, #2ecc71, #27ae60)';
+            } else if (gameState.npcMood > 30) {
+                moodElement.style.background = 'linear-gradient(to right, #f1c40f, #e67e22)';
+            } else {
+                moodElement.style.background = 'linear-gradient(to right, #e74c3c, #c0392b)';
+            }
+            
+            // Update dialog options based on current location
+            updateDialogOptions();
+        }
+
+        // Update dialog options based on location and inventory
+        function updateDialogOptions() {
+            const location = gameState.locations[gameState.currentLocation];
+            const options = gameState.dialogOptions[location] || gameState.dialogOptions.bar;
+            
+            dialogOptionsContainer.innerHTML = '';
+            
+            options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'dialog-option';
+                optionElement.textContent = `${index + 1}. ${option.text}`;
+                optionElement.dataset.option = option.text.toLowerCase().replace(/\s+/g, '_');
+                
+                // Check if player has required item
+                if (option.requiredItem && !gameState.inventory.includes(option.requiredItem)) {
+                    optionElement.classList.add('disabled');
+                } else {
+                    optionElement.addEventListener('click', () => selectDialogOption(option));
+                }
+                
+                dialogOptionsContainer.appendChild(optionElement);
+            });
+        }
+
+        // Handle dialog option selection
+        function selectDialogOption(option) {
+            // Update NPC mood
+            gameState.npcMood += option.moodEffect;
+            gameState.npcMood = Math.max(0, Math.min(100, gameState.npcMood));
+            
+            // Update score
+            gameState.score += 25;
+            
+            // Add message to dialog
+            addMessage(`Larry: ${option.text}`, 'player');
+            
+            // NPC reaction based on mood change
+            setTimeout(() => {
+                let reaction;
+                if (option.moodEffect > 5) {
+                    reaction = "Eve: Well, aren't you charming!";
+                    npc.style.transform = 'translateY(-10px)';
+                } else if (option.moodEffect > 0) {
+                    reaction = "Eve: That's nice, I suppose.";
+                } else if (option.moodEffect === 0) {
+                    reaction = "Eve: *sigh* Is that the best you can do?";
+                } else {
+                    reaction = "Eve: Really? That's what you went with?";
+                    npc.style.transform = 'translateY(10px)';
+                }
+                
+                addMessage(reaction, 'npc');
+                
+                // Reset NPC position after animation
+                setTimeout(() => {
+                    npc.style.transform = 'translateY(0)';
+                }, 500);
+            }, 1000);
+            
+            // Update UI
+            updateUI();
+        }
+
+        // Add message to dialog
+        function addMessage(text, type) {
+            const messageElement = document.createElement('p');
+            messageElement.className = `message ${type}`;
+            messageElement.textContent = text;
+            dialogContent.appendChild(messageElement);
+            
+            // Scroll to bottom
+            dialogContent.scrollTop = dialogContent.scrollHeight;
+        }
+
+        // Show notification
+        function showNotification(text) {
+            notification.textContent = text;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Move to different location
+        function moveToLocation(direction) {
+            if (direction === 'next') {
+                gameState.currentLocation = (gameState.currentLocation + 1) % gameState.locations.length;
+            } else {
+                gameState.currentLocation = (gameState.currentLocation - 1 + gameState.locations.length) % gameState.locations.length;
+            }
+            
+            const location = gameState.locations[gameState.currentLocation];
+            document.querySelector('.location-name').textContent = getLocationName(location);
+            
+            // Update dialog
+            const dialogues = gameState.dialogues[location] || gameState.dialogues.bar;
+            dialogContent.innerHTML = '';
+            
+            dialogues.forEach(dialog => {
+                addMessage(dialog.npc, 'npc');
+                addMessage(dialog.player, 'player');
+            });
+            
+            // Update dialog options
+            updateDialogOptions();
+            
+            showNotification(`Moved to ${getLocationName(location)}`);
+        }
+
+        // Get display name for location
+        function getLocationName(locationKey) {
+            const names = {
+                bar: "Le Bar de l'Amour",
+                hotelLobby: "Hotel Lobby",
+                beach: "Sunset Beach",
+                casino: "Golden Casino"
+            };
+            
+            return names[locationKey] || locationKey;
+        }
+
+        // Handle item interaction
+        function interactWithItem(item) {
+            // Visual feedback
+            item.style.transform = 'scale(1.2)';
+            item.style.boxShadow = '0 0 15px yellow';
+            
+            // Add to inventory if not already there
+            const itemType = item.dataset.item;
+            if (!gameState.inventory.includes(itemType)) {
+                gameState.inventory.push(itemType);
+                
+                // Create new inventory item
+                const newInventoryItem = document.createElement('div');
+                newInventoryItem.className = 'inventory-item';
+                newInventoryItem.dataset.item = itemType;
+                newInventoryItem.innerHTML = getItemEmoji(itemType);
+                newInventoryItem.addEventListener('click', () => selectInventoryItem(newInventoryItem));
+                
+                document.querySelector('.inventory-items').appendChild(newInventoryItem);
+                
+                showNotification(`You found a ${getItemName(itemType)}!`);
+                
+                // Update score
+                gameState.score += 50;
+            } else {
+                showNotification(`You already have the ${getItemName(itemType)}`);
+            }
+            
+            // Remove item from scene after collection
+            setTimeout(() => {
+                item.style.opacity = '0';
+                setTimeout(() => {
+                    item.style.display = 'none';
+                }, 500);
+            }, 1000);
+            
+            // Update UI
+            updateUI();
+        }
+
+        // Get emoji for item
+        function getItemEmoji(itemType) {
+            const emojis = {
+                briefcase: '💼',
+                drink: '🍸',
+                key: '🔑',
+                money: '💵',
+                phone: '📱',
+                carKeys: '🚗',
+                sunglasses: '🕶️'
+            };
+            
+            return emojis[itemType] || '❓';
+        }
+
+        // Get display name for item
+        function getItemName(itemType) {
+            const names = {
+                briefcase: "Briefcase",
+                drink: "Exotic Drink",
+                key: "Mystery Key",
+                money: "Money",
+                phone: "Phone",
+                carKeys: "Car Keys",
+                sunglasses: "Sunglasses"
+            };
+            
+            return names[itemType] || itemType;
+        }
+
+        // Select inventory item
+        function selectInventoryItem(item) {
+            // Deselect all items
+            document.querySelectorAll('.inventory-item').forEach(i => {
+                i.classList.remove('selected');
+            });
+            
+            // Select clicked item
+            item.classList.add('selected');
+            gameState.selectedItem = item.dataset.item;
+            
+            showNotification(`Selected ${getItemName(item.dataset.item)}`);
+        }
+
+        // Use selected item
+        function useSelectedItem() {
+            if (!gameState.selectedItem) {
+                showNotification("You need to select an item first!");
+                return;
+            }
+            
+            const itemName = getItemName(gameState.selectedItem);
+            
+            // Different effects based on item
+            switch (gameState.selectedItem) {
+                case 'drink':
+                    addMessage("Larry: Would you like a drink? *offers drink*", 'player');
+                    setTimeout(() => {
+                        addMessage("Eve: Oh, my favorite! How did you know?", 'npc');
+                        gameState.npcMood += 15;
+                    }, 1000);
+                    break;
+                case 'sunglasses':
+                    addMessage("Larry: *puts on sunglasses* Cool, huh?", 'player');
+                    setTimeout(() => {
+                        addMessage("Eve: *chuckles* You're ridiculous!", 'npc');
+                        gameState.npcMood += 10;
+                    }, 1000);
+                    break;
+                case 'phone':
+                    addMessage("Larry: Let me take a selfie with you!", 'player');
+                    setTimeout(() => {
+                        addMessage("Eve: *sigh* Fine, but make it quick.", 'npc');
+                        gameState.npcMood += 5;
+                    }, 1000);
+                    break;
+                default:
+                    addMessage(`Larry: *uses ${itemName}*`, 'player');
+                    setTimeout(() => {
+                        addMessage("Eve: What are you doing with that?", 'npc');
+                        gameState.npcMood -= 5;
+                    }, 1000);
+            }
+            
+            // Update UI
+            updateUI();
+            
+            // Deselect item
+            gameState.selectedItem = null;
+            document.querySelectorAll('.inventory-item').forEach(i => {
+                i.classList.remove('selected');
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Interactive items
+            interactiveItems.forEach(item => {
+                item.addEventListener('click', () => interactWithItem(item));
+            });
+            
+            // Action buttons
+            actionButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const action = e.target.dataset.action;
+                    
+                    button.style.transform = 'translateY(2px)';
+                    
+                    switch (action) {
+                        case 'look':
+                            addMessage("You take a look around. It's fancier than the places you usually frequent.", 'player');
+                            break;
+                        case 'talk':
+                            addMessage("Larry: So... come here often?", 'player');
+                            setTimeout(() => {
+                                addMessage("Eve: *rolls eyes* Original.", 'npc');
+                            }, 1000);
+                            break;
+                        case 'use':
+                            useSelectedItem();
+                            break;
+                        case 'move':
+                            moveToLocation('next');
+                            break;
+                        case 'save':
+                            showNotification("Game saved!");
+                            break;
+                        case 'load':
+                            showNotification("Game loaded!");
+                            break;
+                    }
+                    
+                    setTimeout(() => {
+                        button.style.transform = 'translateY(0)';
+                    }, 100);
+                });
+            });
+            
+            // Inventory items
+            inventoryItems.forEach(item => {
+                item.addEventListener('click', () => selectInventoryItem(item));
+            });
+        }
+
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            initGame();
         });
     </script>
 </body>
