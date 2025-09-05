@@ -125,7 +125,7 @@
             border-radius: 50%;
         }
         
-        .npc-character {
+        .npc {
             position: absolute;
             bottom: 100px;
             right: 150px;
@@ -246,7 +246,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-height: 0; /* Fix for flexbox overflow */
+            min-height: 0;
         }
         
         .dialog-title {
@@ -264,7 +264,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            min-height: 0; /* Fix for flexbox overflow */
+            min-height: 0;
         }
         
         .dialog-options {
@@ -345,12 +345,12 @@
             word-wrap: break-word;
         }
         
-        .message.npc-message {
+        .message.npc {
             background: rgba(231, 76, 60, 0.2);
             align-self: flex-start;
         }
         
-        .message.player-message {
+        .message.player {
             background: rgba(52, 152, 219, 0.2);
             align-self: flex-end;
         }
@@ -431,7 +431,7 @@
                 flex: 1;
             }
             
-            .npc-character {
+            .npc {
                 right: 50px;
             }
             
@@ -472,7 +472,7 @@
                         </div>
                     </div>
                     
-                    <div class="npc-character">
+                    <div class="npc">
                         <div class="npc-head"></div>
                     </div>
                     
@@ -496,8 +496,8 @@
                 <div class="dialog">
                     <div class="dialog-title">Conversation</div>
                     <div class="dialog-content" id="dialog-content">
-                        <p class="message npc-message">Eve: I'm waiting for someone who actually has something interesting to say.</p>
-                        <p class="message player-message">Larry: Well, I've been told I'm full of interesting... ideas.</p>
+                        <p class="message npc">Eve: I'm waiting for someone who actually has something interesting to say.</p>
+                        <p class="message player">Larry: Well, I've been told I'm full of interesting... ideas.</p>
                     </div>
                     <div class="dialog-options" id="dialog-options">
                         <div class="dialog-option" data-option="compliment">1. Compliment her appearance</div>
@@ -510,15 +510,15 @@
         
         <footer class="game-footer">
             <div class="action-buttons">
-                <button class="btn btn-primary" data-action="look">Look</button>
-                <button class="btn btn-primary" data-action="talk">Talk</button>
-                <button class="btn btn-primary" data-action="use">Use</button>
-                <button class="btn btn-primary" data-action="move">Move</button>
+                <button class="btn btn-primary" id="look-btn">Look</button>
+                <button class="btn btn-primary" id="talk-btn">Talk</button>
+                <button class="btn btn-primary" id="use-btn">Use</button>
+                <button class="btn btn-primary" id="move-btn">Move</button>
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-success" data-action="save">Save</button>
-                <button class="btn btn-danger" data-action="load">Load</button>
+                <button class="btn btn-success" id="save-btn">Save</button>
+                <button class="btn btn-danger" id="load-btn">Load</button>
             </div>
         </footer>
     </div>
@@ -574,7 +574,6 @@
 
         // DOM elements
         const interactiveItems = document.querySelectorAll('.interactive-item');
-        const actionButtons = document.querySelectorAll('.btn');
         const inventoryItems = document.querySelectorAll('.inventory-item');
         const dialogContent = document.getElementById('dialog-content');
         const dialogOptionsContainer = document.getElementById('dialog-options');
@@ -583,7 +582,15 @@
         const moodElement = document.getElementById('mood-level');
         const notification = document.getElementById('notification');
         const character = document.querySelector('.character');
-        const npc = document.querySelector('.npc-character');
+        const npc = document.querySelector('.npc');
+
+        // Action buttons
+        const lookBtn = document.getElementById('look-btn');
+        const talkBtn = document.getElementById('talk-btn');
+        const useBtn = document.getElementById('use-btn');
+        const moveBtn = document.getElementById('move-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
 
         // Initialize game
         function initGame() {
@@ -662,7 +669,7 @@
             gameState.score += 25;
             
             // Add message to dialog
-            addMessage(`Larry: ${option.text}`, 'player-message');
+            addMessage(`Larry: ${option.text}`, 'player');
             
             // NPC reaction based on mood change
             setTimeout(() => {
@@ -679,7 +686,7 @@
                     npc.style.transform = 'translateY(10px)';
                 }
                 
-                addMessage(reaction, 'npc-message');
+                addMessage(reaction, 'npc');
                 
                 // Reset NPC position after animation
                 setTimeout(() => {
@@ -734,8 +741,8 @@
             const dialogues = gameState.dialogues[location] || gameState.dialogues.bar;
             
             dialogues.forEach(dialog => {
-                addMessage(dialog.npc, 'npc-message');
-                addMessage(dialog.player, 'player-message');
+                addMessage(dialog.npc, 'npc');
+                addMessage(dialog.player, 'player');
             });
             
             // Update dialog options
@@ -852,30 +859,30 @@
             // Different effects based on item
             switch (gameState.selectedItem) {
                 case 'drink':
-                    addMessage("Larry: Would you like a drink? *offers drink*", 'player-message');
+                    addMessage("Larry: Would you like a drink? *offers drink*", 'player');
                     setTimeout(() => {
-                        addMessage("Eve: Oh, my favorite! How did you know?", 'npc-message');
+                        addMessage("Eve: Oh, my favorite! How did you know?", 'npc');
                         gameState.npcMood += 15;
                     }, 1000);
                     break;
                 case 'sunglasses':
-                    addMessage("Larry: *puts on sunglasses* Cool, huh?", 'player-message');
+                    addMessage("Larry: *puts on sunglasses* Cool, huh?", 'player');
                     setTimeout(() => {
-                        addMessage("Eve: *chuckles* You're ridiculous!", 'npc-message');
+                        addMessage("Eve: *chuckles* You're ridiculous!", 'npc');
                         gameState.npcMood += 10;
                     }, 1000);
                     break;
                 case 'phone':
-                    addMessage("Larry: Let me take a selfie with you!", 'player-message');
+                    addMessage("Larry: Let me take a selfie with you!", 'player');
                     setTimeout(() => {
-                        addMessage("Eve: *sigh* Fine, but make it quick.", 'npc-message');
+                        addMessage("Eve: *sigh* Fine, but make it quick.", 'npc');
                         gameState.npcMood += 5;
                     }, 1000);
                     break;
                 default:
-                    addMessage(`Larry: *uses ${itemName}*`, 'player-message');
+                    addMessage(`Larry: *uses ${itemName}*`, 'player');
                     setTimeout(() => {
-                        addMessage("Eve: What are you doing with that?", 'npc-message');
+                        addMessage("Eve: What are you doing with that?", 'npc');
                         gameState.npcMood -= 5;
                     }, 1000);
             }
@@ -898,40 +905,53 @@
             });
             
             // Action buttons
-            actionButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const action = e.target.dataset.action;
-                    
-                    button.style.transform = 'translateY(2px)';
-                    
-                    switch (action) {
-                        case 'look':
-                            addMessage("You take a look around. It's fancier than the places you usually frequent.", 'player-message');
-                            break;
-                        case 'talk':
-                            addMessage("Larry: So... come here often?", 'player-message');
-                            setTimeout(() => {
-                                addMessage("Eve: *rolls eyes* Original.", 'npc-message');
-                            }, 1000);
-                            break;
-                        case 'use':
-                            useSelectedItem();
-                            break;
-                        case 'move':
-                            moveToLocation('next');
-                            break;
-                        case 'save':
-                            showNotification("Game saved!");
-                            break;
-                        case 'load':
-                            showNotification("Game loaded!");
-                            break;
-                    }
-                    
-                    setTimeout(() => {
-                        button.style.transform = 'translateY(0)';
-                    }, 100);
-                });
+            lookBtn.addEventListener('click', () => {
+                lookBtn.style.transform = 'translateY(2px)';
+                addMessage("You take a look around. It's fancier than the places you usually frequent.", 'player');
+                setTimeout(() => {
+                    lookBtn.style.transform = 'translateY(0)';
+                }, 100);
+            });
+            
+            talkBtn.addEventListener('click', () => {
+                talkBtn.style.transform = 'translateY(2px)';
+                addMessage("Larry: So... come here often?", 'player');
+                setTimeout(() => {
+                    addMessage("Eve: *rolls eyes* Original.", 'npc');
+                    talkBtn.style.transform = 'translateY(0)';
+                }, 1000);
+            });
+            
+            useBtn.addEventListener('click', () => {
+                useBtn.style.transform = 'translateY(2px)';
+                useSelectedItem();
+                setTimeout(() => {
+                    useBtn.style.transform = 'translateY(0)';
+                }, 100);
+            });
+            
+            moveBtn.addEventListener('click', () => {
+                moveBtn.style.transform = 'translateY(2px)';
+                moveToLocation('next');
+                setTimeout(() => {
+                    moveBtn.style.transform = 'translateY(0)';
+                }, 100);
+            });
+            
+            saveBtn.addEventListener('click', () => {
+                saveBtn.style.transform = 'translateY(2px)';
+                showNotification("Game saved!");
+                setTimeout(() => {
+                    saveBtn.style.transform = 'translateY(0)';
+                }, 100);
+            });
+            
+            loadBtn.addEventListener('click', () => {
+                loadBtn.style.transform = 'translateY(2px)';
+                showNotification("Game loaded!");
+                setTimeout(() => {
+                    loadBtn.style.transform = 'translateY(0)';
+                }, 100);
             });
             
             // Inventory items
@@ -941,7 +961,7 @@
         }
 
         // Initialize the game when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () {
+        document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
             initGame();
         });
