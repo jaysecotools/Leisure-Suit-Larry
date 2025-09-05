@@ -337,6 +337,8 @@
             border-radius: 5px;
             font-style: italic;
             animation: fadeIn 0.3s ease;
+            margin-bottom: 8px;
+            line-height: 1.4;
         }
         
         .message.npc {
@@ -568,7 +570,6 @@
 
         // DOM elements
         const interactiveItems = document.querySelectorAll('.interactive-item');
-        const dialogOptions = document.querySelectorAll('.dialog-option');
         const actionButtons = document.querySelectorAll('.btn');
         const inventoryItems = document.querySelectorAll('.inventory-item');
         const dialogContent = document.getElementById('dialog-content');
@@ -718,9 +719,9 @@
             const location = gameState.locations[gameState.currentLocation];
             document.querySelector('.location-name').textContent = getLocationName(location);
             
-            // Update dialog
-            const dialogues = gameState.dialogues[location] || gameState.dialogues.bar;
+            // Clear dialog and load new conversation
             dialogContent.innerHTML = '';
+            const dialogues = gameState.dialogues[location] || gameState.dialogues.bar;
             
             dialogues.forEach(dialog => {
                 addMessage(dialog.npc, 'npc');
