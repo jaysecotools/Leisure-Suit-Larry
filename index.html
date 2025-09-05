@@ -125,7 +125,7 @@
             border-radius: 50%;
         }
         
-        .npc {
+        .npc-character {
             position: absolute;
             bottom: 100px;
             right: 150px;
@@ -345,12 +345,12 @@
             word-wrap: break-word;
         }
         
-        .message.npc {
+        .message.npc-message {
             background: rgba(231, 76, 60, 0.2);
             align-self: flex-start;
         }
         
-        .message.player {
+        .message.player-message {
             background: rgba(52, 152, 219, 0.2);
             align-self: flex-end;
         }
@@ -431,7 +431,7 @@
                 flex: 1;
             }
             
-            .npc {
+            .npc-character {
                 right: 50px;
             }
             
@@ -472,7 +472,7 @@
                         </div>
                     </div>
                     
-                    <div class="npc">
+                    <div class="npc-character">
                         <div class="npc-head"></div>
                     </div>
                     
@@ -496,8 +496,8 @@
                 <div class="dialog">
                     <div class="dialog-title">Conversation</div>
                     <div class="dialog-content" id="dialog-content">
-                        <p class="message npc">Eve: I'm waiting for someone who actually has something interesting to say.</p>
-                        <p class="message player">Larry: Well, I've been told I'm full of interesting... ideas.</p>
+                        <p class="message npc-message">Eve: I'm waiting for someone who actually has something interesting to say.</p>
+                        <p class="message player-message">Larry: Well, I've been told I'm full of interesting... ideas.</p>
                     </div>
                     <div class="dialog-options" id="dialog-options">
                         <div class="dialog-option" data-option="compliment">1. Compliment her appearance</div>
@@ -583,7 +583,7 @@
         const moodElement = document.getElementById('mood-level');
         const notification = document.getElementById('notification');
         const character = document.querySelector('.character');
-        const npc = document.querySelector('.npc');
+        const npc = document.querySelector('.npc-character');
 
         // Initialize game
         function initGame() {
@@ -662,7 +662,7 @@
             gameState.score += 25;
             
             // Add message to dialog
-            addMessage(`Larry: ${option.text}`, 'player');
+            addMessage(`Larry: ${option.text}`, 'player-message');
             
             // NPC reaction based on mood change
             setTimeout(() => {
@@ -679,7 +679,7 @@
                     npc.style.transform = 'translateY(10px)';
                 }
                 
-                addMessage(reaction, 'npc');
+                addMessage(reaction, 'npc-message');
                 
                 // Reset NPC position after animation
                 setTimeout(() => {
@@ -734,8 +734,8 @@
             const dialogues = gameState.dialogues[location] || gameState.dialogues.bar;
             
             dialogues.forEach(dialog => {
-                addMessage(dialog.npc, 'npc');
-                addMessage(dialog.player, 'player');
+                addMessage(dialog.npc, 'npc-message');
+                addMessage(dialog.player, 'player-message');
             });
             
             // Update dialog options
@@ -852,30 +852,30 @@
             // Different effects based on item
             switch (gameState.selectedItem) {
                 case 'drink':
-                    addMessage("Larry: Would you like a drink? *offers drink*", 'player');
+                    addMessage("Larry: Would you like a drink? *offers drink*", 'player-message');
                     setTimeout(() => {
-                        addMessage("Eve: Oh, my favorite! How did you know?", 'npc');
+                        addMessage("Eve: Oh, my favorite! How did you know?", 'npc-message');
                         gameState.npcMood += 15;
                     }, 1000);
                     break;
                 case 'sunglasses':
-                    addMessage("Larry: *puts on sunglasses* Cool, huh?", 'player');
+                    addMessage("Larry: *puts on sunglasses* Cool, huh?", 'player-message');
                     setTimeout(() => {
-                        addMessage("Eve: *chuckles* You're ridiculous!", 'npc');
+                        addMessage("Eve: *chuckles* You're ridiculous!", 'npc-message');
                         gameState.npcMood += 10;
                     }, 1000);
                     break;
                 case 'phone':
-                    addMessage("Larry: Let me take a selfie with you!", 'player');
+                    addMessage("Larry: Let me take a selfie with you!", 'player-message');
                     setTimeout(() => {
-                        addMessage("Eve: *sigh* Fine, but make it quick.", 'npc');
+                        addMessage("Eve: *sigh* Fine, but make it quick.", 'npc-message');
                         gameState.npcMood += 5;
                     }, 1000);
                     break;
                 default:
-                    addMessage(`Larry: *uses ${itemName}*`, 'player');
+                    addMessage(`Larry: *uses ${itemName}*`, 'player-message');
                     setTimeout(() => {
-                        addMessage("Eve: What are you doing with that?", 'npc');
+                        addMessage("Eve: What are you doing with that?", 'npc-message');
                         gameState.npcMood -= 5;
                     }, 1000);
             }
@@ -906,12 +906,12 @@
                     
                     switch (action) {
                         case 'look':
-                            addMessage("You take a look around. It's fancier than the places you usually frequent.", 'player');
+                            addMessage("You take a look around. It's fancier than the places you usually frequent.", 'player-message');
                             break;
                         case 'talk':
-                            addMessage("Larry: So... come here often?", 'player');
+                            addMessage("Larry: So... come here often?", 'player-message');
                             setTimeout(() => {
-                                addMessage("Eve: *rolls eyes* Original.", 'npc');
+                                addMessage("Eve: *rolls eyes* Original.", 'npc-message');
                             }, 1000);
                             break;
                         case 'use':
@@ -941,7 +941,7 @@
         }
 
         // Initialize the game when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () {
             setupEventListeners();
             initGame();
         });
